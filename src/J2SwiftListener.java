@@ -41,4 +41,9 @@ public class J2SwiftListener extends Java8BaseListener {
         return code.length() == 0 ? code.toString() :  code.insert(0, "import Foundation\n\n").toString();
     }
 
+    public void enterNormalClassDeclaration(Java8Parser.NormalClassDeclarationContext ctx) {
+        // TODO class modifiers, type parameters
+        code.append("\nclass ").append(ctx.Identifier().toString());
+    }
+
 }
