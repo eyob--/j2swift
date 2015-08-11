@@ -1,3 +1,6 @@
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Actual "behind-the-scenes" java to swift converter that processes
  * the parse tree for the java file and gives back swift code
