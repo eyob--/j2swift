@@ -5,6 +5,28 @@
  */
 public class J2SwiftListener extends Java8BaseListener {
 
+    private static Map<String, String> typeMap = new HashMap<>();
+
+    static {
+        typeMap.put("boolean", "Bool");
+        typeMap.put("Boolean", "Bool");
+        typeMap.put("byte", "Int8");
+        typeMap.put("Byte", "Int8");
+        typeMap.put("short", "Int16");
+        typeMap.put("Short", "Int16");
+        typeMap.put("int", "Int32");
+        typeMap.put("Integer", "Int32");
+        typeMap.put("long", "Int64");
+        typeMap.put("Long", "Int64");
+        typeMap.put("float", "Float");
+        typeMap.put("Float", "Float");
+        typeMap.put("double", "Double");
+        typeMap.put("Double", "Double");
+        typeMap.put("char", "Character");
+        typeMap.put("Character", "Character");
+        typeMap.put("String", "String");
+    }
+
     private String code = "";
 
     /**
