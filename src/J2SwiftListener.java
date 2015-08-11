@@ -1,4 +1,7 @@
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,6 +47,46 @@ public class J2SwiftListener extends Java8BaseListener {
     public void enterNormalClassDeclaration(Java8Parser.NormalClassDeclarationContext ctx) {
         // TODO class modifiers, type parameters
         code.append("\nclass ").append(ctx.Identifier().toString());
+    }
+
+    public void enterSuperclass(Java8Parser.SuperclassContext ctx) {
+        code.append(": ");
+    }
+
+    public void enterSuperinterfaces(Java8Parser.SuperinterfacesContext ctx) {
+        boolean superClassExists = ctx.getParent() instanceof Java8Parser.NormalClassDeclarationContext
+                    && ((Java8Parser.NormalClassDeclarationContext) ctx.getParent()).superclass() != null;
+        if (superClassExists) {
+            code.append(", ");
+        }
+        else {
+            code.append(": ");
+        }
+    }
+
+    public void exitInterfaceType(Java8Parser.InterfaceTypeContext ctx) {
+        ParserRuleContext parent = ctx.getParent();
+        if (parent instanceof Java8Parser.InterfaceTypeListContext) {
+            List<Java8Parser.InterfaceTypeContext> interfaceList =
+                        ((Java8Parser.InterfaceTypeListContext) parent).interfaceType();
+            if (interfaceList.get(interfaceList.size()-1) != ctx) {
+                // if this isn't the last interface in a list, put a comma at the end
+                code.append(", ");
+            }
+        }
+    }
+
+    public void enterClassType(Java8Parser.ClassTypeContext ctx) {
+        // TODO type parameters
+        code.append(ctx.Identifier());
+    }
+
+    public void enterClassBody(Java8Parser.ClassBodyContext ctx) {
+        code.append(" {\n");
+    }
+
+    public void exitClassBody(Java8Parser.ClassBodyContext ctx) {
+        code.append("\n}");
     }
 
 }
