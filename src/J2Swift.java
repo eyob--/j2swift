@@ -28,5 +28,6 @@ public class J2Swift {
 		walker.walk(listener, tree);
 		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(inputFile+".swift")));
 		pw.println(listener.swiftCode());
+		pw.close();
 	}
 }
