@@ -27,7 +27,7 @@ public class J2SwiftListener extends Java8BaseListener {
         typeMap.put("String", "String");
     }
 
-    private String code = "";
+    private StringBuilder code = new StringBuilder();
 
     /**
      * Returns the swift code to be outputted to a file, or the empty string if
@@ -35,7 +35,7 @@ public class J2SwiftListener extends Java8BaseListener {
      * @return swift code as a giant String
      */
     public String swiftCode() {
-        return code.isEmpty() ? code : "import Foundation\n\n" + code;
+        return code.length() == 0 ? code.toString() :  code.insert(0, "import Foundation\n\n").toString();
     }
 
 }
