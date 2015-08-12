@@ -75,7 +75,7 @@ public class J2SwiftListener extends Java8BaseListener {
         if (text.equals("error")) {
             exitNonTranslatable("class modifier '"+ctx.getText()+"'", ctx);
         }
-        code.append().append(' ');
+        code.append(text).append(' ');
     }
 
     public void exitClassModifier(ClassModifierContext ctx) {
