@@ -1,9 +1,9 @@
 import Foundation
 
 
-class Test: A, B, C, D {
+public class Test: A, B, C, D {
 
-class E: F, G {
+private static final class E<T: V, U>: <T, U>, G {
 
 }
 }

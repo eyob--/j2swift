@@ -6,10 +6,10 @@ public class Test extends A implements B, C, D {
 
 	}
 
-	public static class E extends F implements G {
+	private static final class E<T extends V, U> extends F<T, U> implements G {
 
 		public void h() {
-			
+
 		}
 
 	}
