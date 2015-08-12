@@ -44,6 +44,12 @@ public class J2SwiftListener extends Java8BaseListener {
         return code.length() == 0 ? code.toString() :  code.insert(0, "import Foundation\n\n").toString();
     }
 
+    private void exitNonTranslatable(String message, ParserRuleContext ctx) {
+        System.err.println("Error! Encountered non-translatable: " + message + " \""
+                    + ctx.getParent().getText() + "\"");
+        System.exit(1);
+    }
+
     public void enterNormalClassDeclaration(Java8Parser.NormalClassDeclarationContext ctx) {
         // TODO class modifiers, type parameters
         code.append("\nclass ").append(ctx.Identifier().toString());
@@ -76,9 +82,10 @@ public class J2SwiftListener extends Java8BaseListener {
         }
     }
 
-    public void enterClassType(Java8Parser.ClassTypeContext ctx) {
-        // TODO type parameters
-        code.append(ctx.Identifier());
+    public void exitClassType(Java8Parser.ClassTypeContext ctx) {
+        // the identifier is usually printed in enterTypeArguments()
+        if (ctx.typeArguments() == null)
+            code.append(ctx.Identifier());
     }
 
     public void enterClassBody(Java8Parser.ClassBodyContext ctx) {
@@ -87,6 +94,75 @@ public class J2SwiftListener extends Java8BaseListener {
 
     public void exitClassBody(Java8Parser.ClassBodyContext ctx) {
         code.append("\n}");
+    }
+
+    public void enterTypeParameters(Java8Parser.TypeParametersContext ctx) {
+        code.append("<");
+    }
+
+    public void exitTypeParameters(Java8Parser.TypeParametersContext ctx) {
+        code.append(">");
+    }
+
+    public void enterTypeParameter(Java8Parser.TypeParameterContext ctx) {
+        code.append(ctx.Identifier());
+    }
+
+    public void exitTypeParameter(Java8Parser.TypeParameterContext ctx) {
+        List<Java8Parser.TypeParameterContext> typeParameterList =
+                    ((Java8Parser.TypeParameterListContext) ctx.getParent()).typeParameter();
+        if (typeParameterList.get(typeParameterList.size()-1) != ctx) {
+            code.append(", ");
+        }
+    }
+
+    public void enterTypeArguments(Java8Parser.TypeArgumentsContext ctx) {
+        // print out class identifier if these are the type arguments for a class
+        if (ctx.getParent() instanceof Java8Parser.ClassTypeContext) {
+            Java8Parser.ClassTypeContext parent = (Java8Parser.ClassTypeContext) ctx.getParent();
+            if (parent.classOrInterfaceType() != null) {
+                code.append(".").append(parent.Identifier());
+            }
+        }
+
+        code.append("<");
+    }
+
+    public void exitTypeArguments(Java8Parser.TypeArgumentsContext ctx) {
+        code.append(">");
+    }
+
+    public void exitTypeArgument(Java8Parser.TypeArgumentContext ctx) {
+        List<Java8Parser.TypeArgumentContext> typeArgumentList =
+                    ((Java8Parser.TypeArgumentListContext) ctx.getParent()).typeArgument();
+
+        if (typeArgumentList.get(typeArgumentList.size()-1) != ctx) {
+            code.append(", ");
+        }
+    }
+
+    public void enterTypeBound(Java8Parser.TypeBoundContext ctx) {
+        code.append(": ");
+    }
+
+    public void enterTypeVariable(Java8Parser.TypeVariableContext ctx) {
+        code.append(ctx.Identifier());
+    }
+
+    public void enterAdditionalBound(Java8Parser.AdditionalBoundContext ctx) {
+        exitNonTranslatable("additional type bound", ctx);
+    }
+
+    public void enterClassType_lfno_classOrInterfaceType(Java8Parser.ClassType_lfno_classOrInterfaceTypeContext ctx) {
+        code.append(ctx.Identifier());
+    }
+
+    public void enterClassType_lf_classOrInterfaceType(Java8Parser.ClassType_lf_classOrInterfaceTypeContext ctx) {
+        code.append('.').append(ctx.Identifier());
+    }
+
+    public void enterWildcard(Java8Parser.WildcardContext ctx) {
+        exitNonTranslatable("wildcard", ctx);
     }
 
 }
