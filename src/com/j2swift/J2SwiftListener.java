@@ -154,8 +154,9 @@ public class J2SwiftListener extends Java8BaseListener {
         if (ctx.getParent() instanceof ClassTypeContext) {
             ClassTypeContext parent = (ClassTypeContext) ctx.getParent();
             if (parent.classOrInterfaceType() != null) {
-                code.append(".").append(parent.Identifier());
+                code.append(".");
             }
+            code.append(parent.Identifier());
         }
 
         code.append("<");
