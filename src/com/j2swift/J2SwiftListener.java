@@ -15,6 +15,7 @@ import static com.j2swift.Java8Parser.*;
 public class J2SwiftListener extends Java8BaseListener {
 
     private static Map<String, String> typeMap = new HashMap<>();
+    private static Map<String, String> modifierMap = new HashMap<>();
 
     static {
         typeMap.put("boolean", "Bool");
@@ -34,6 +35,14 @@ public class J2SwiftListener extends Java8BaseListener {
         typeMap.put("char", "Character");
         typeMap.put("Character", "Character");
         typeMap.put("String", "String");
+
+        modifierMap.put("public", "public");
+        modifierMap.put("protected", "2public");    // will ask user in a later process
+        modifierMap.put("private", "private");
+        modifierMap.put("abstract", "error");
+        modifierMap.put("static", "static");
+        modifierMap.put("final", "final");
+        modifierMap.put("strictfp", "error");
     }
 
     private StringBuilder code = new StringBuilder();
@@ -55,7 +64,28 @@ public class J2SwiftListener extends Java8BaseListener {
 
     public void enterNormalClassDeclaration(NormalClassDeclarationContext ctx) {
         // TODO class modifiers, type parameters
-        code.append("\nclass ").append(ctx.Identifier().toString());
+        code.append("\n");
+        if (ctx.classModifier() == null)
+            code.append("class ").append(ctx.Identifier());
+    }
+
+    public void enterClassModifier(ClassModifierContext ctx) {
+        if (ctx.annotation() != null) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("error")) {
+            exitNonTranslatable("class modifier '"+ctx.getText()+"'", ctx);
+        }
+        code.append().append(' ');
+    }
+
+    public void exitClassModifier(ClassModifierContext ctx) {
+        if (ctx.getParent() instanceof NormalClassDeclarationContext) {
+            NormalClassDeclarationContext parent = (NormalClassDeclarationContext) ctx.getParent();
+            List<ClassModifierContext> modifierList = parent.classModifier();
+            if (modifierList.get(modifierList.size()-1) == ctx) {
+                code.append("class ").append(parent.Identifier());
+            }
+        }
     }
 
     public void enterSuperclass(SuperclassContext ctx) {
