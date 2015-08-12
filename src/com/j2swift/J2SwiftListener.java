@@ -63,7 +63,6 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     public void enterNormalClassDeclaration(NormalClassDeclarationContext ctx) {
-        // TODO class modifiers, type parameters
         code.append("\n");
         if (ctx.classModifier() == null)
             code.append("class ").append(ctx.Identifier());
