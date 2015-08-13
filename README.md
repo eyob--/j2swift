@@ -18,6 +18,8 @@ If there is no Swift equivalent of a section of code, the program will tell the 
 * Non-translatable modifiers
 	* abstract
 	* strictfp
+	* transient
+	* volatile
 * Type Parameter Quirks
 	* additional bound "&"
 	* wildcard "?"
@@ -27,7 +29,12 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 
 ### Class Declaration
 * Class modifiers
-	* protected	->	2public (the user will be asked later whether they want to make the modifier "private" or "internal")
+	* protected	-> 2public (the user will be asked later whether they want to make the modifier "private" or "internal")
 * Type Parameters
 * Superclass and Superinterfaces
 * Class body (the braces)
+### Field Declaration
+* Field modifiers
+	* the "final" modifier will cause the variable to be declared with "let"
+* Variable declaration list
+	* without initialization of variables
