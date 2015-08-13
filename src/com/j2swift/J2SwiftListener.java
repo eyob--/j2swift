@@ -43,6 +43,8 @@ public class J2SwiftListener extends Java8BaseListener {
         modifierMap.put("static", "static");
         modifierMap.put("final", "final");
         modifierMap.put("strictfp", "error");
+        modifierMap.put("transient", "error");
+        modifierMap.put("volatile", "error");
     }
 
     private StringBuilder code = new StringBuilder();
@@ -197,5 +199,51 @@ public class J2SwiftListener extends Java8BaseListener {
     public void enterWildcard(WildcardContext ctx) {
         exitNonTranslatable("wildcard", ctx);
     }
+
+    public void enterFieldDeclaration(FieldDeclarationContext ctx) {
+        if (code.charAt(code.length()-2) == '{') {
+            code.append("\n");
+        }
+    }
+
+    public void exitFieldDeclaration(FieldDeclarationContext ctx) {
+        code.append(";\n");
+    }
+
+    public void enterFieldModifier(FieldModifierContext ctx) {
+        if (ctx.annotation() != null) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("error")) {
+            exitNonTranslatable("field modifier '"+ctx.getText()+"'", ctx);
+        }
+        if (text.equals("final")) {
+            return;
+        }
+        code.append(text).append(' ');
+    }
+
+    public void exitFieldModifier(FieldModifierContext ctx) {
+        List<FieldModifierContext> list = ((FieldDeclarationContext) ctx.getParent()).fieldModifier();
+        if (list.get(list.size()-1) != ctx) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("final")) {
+            code.append("let ");
+        }
+        else {
+            code.append("var ");
+        }
+    }
+
+    public void exitVariableDeclarator(VariableDeclaratorContext ctx) {
+        List<VariableDeclaratorContext> list = ((VariableDeclaratorListContext) ctx.getParent()).variableDeclarator();
+        if (list.get(list.size()-1) != ctx) {
+            code.append(", ");
+        }
+    }
+
+    public void enterVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
+        code.append(ctx.Identifier());
+    }
+
 
 }

@@ -2,6 +2,9 @@ import java.util.List;
 
 public class Test extends A implements B, C, D {
 
+	private int a, b;
+	public final String c;
+
 	public void f() {
 
 	}
