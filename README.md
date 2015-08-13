@@ -25,7 +25,7 @@ If there is no Swift equivalent of a section of code, the program will tell the 
 	* wildcard "?"
 
 ## What it covers
-For an actual example of what j2swift covers for now, check Test.java and Test.java.swift in src/
+For an actual example of what j2swift covers for now, check Test.java and Test.java.swift
 
 ### Class Declaration
 * Class modifiers
