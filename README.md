@@ -33,6 +33,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 * Type Parameters
 * Superclass and Superinterfaces
 * Class body (the braces)
+
 ### Field Declaration
 * Field modifiers
 	* the "final" modifier will cause the variable to be declared with "let"
