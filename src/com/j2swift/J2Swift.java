@@ -32,10 +32,10 @@ public class J2Swift {
 		walker.walk(listener, tree);
 		if (listener.protectedEncountered()) {
 			System.out.println("A protected has been encountered");
-			System.out.print("Do you want to replace it with the internal keyword (no for private) [Y/n]");
+			System.out.print("Do you want to replace it with the internal keyword (no for private)? [Y/n] ");
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			String response = br.readLine();
-			if (response.equals("n")) {
+			int response = br.read();
+			if (response == 'n') {
 				listener.replaceProtected(false);
 			}
 			else {
