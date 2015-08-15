@@ -4,6 +4,7 @@ public class Test extends A implements B, C, D {
 
 	private int a, b;
 	public final String c;
+	protected short s;
 
 	public void f() {
 
