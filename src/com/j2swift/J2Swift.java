@@ -28,6 +28,18 @@ public class J2Swift {
 		ParseTreeWalker walker = new ParseTreeWalker();
 		J2SwiftListener listener = new J2SwiftListener();
 		walker.walk(listener, tree);
+		if (listener.protectedEncountered()) {
+			System.out.println("A protected has been encountered");
+			System.out.print("Do you want to replace it with the internal keyword (no for private) [Y/n]");
+			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+			String response = br.readLine();
+			if (response.charAt(0) == 'n') {
+				listener.replaceProtected(false);
+			}
+			else {
+				listener.replaceProtected(true);
+			}
+		}
 		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(inputFile+".swift")));
 		pw.println(listener.swiftCode());
 		pw.close();
