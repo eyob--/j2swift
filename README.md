@@ -29,7 +29,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 
 ### Class Declaration
 * Class modifiers
-	* protected	-> 2public (the user will be asked later whether they want to make the modifier "private" or "internal")
+	* protected	-> internal or private (user is asked)
 * Type Parameters
 * Superclass and Superinterfaces
 * Class body (the braces)
