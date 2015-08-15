@@ -58,6 +58,30 @@ public class J2SwiftListener extends Java8BaseListener {
         return code.length() == 0 ? code.toString() :  code.insert(0, "import Foundation\n\n").toString();
     }
 
+    /**
+     * Returns whether a "protected" has been encountered in the parsed Java code
+     * @return whether the "protected" keyword has been encountered in the code
+     */
+    public boolean protectedEncountered() {
+        return code.indexOf("2public") != -1;
+    }
+
+    /**
+     * Replaces all found occurrences of the protected keyword with either the
+     * internal or private keywords
+     * @param withInternal whether the protected should be replaced with internal
+     * or private
+     */
+    public void replaceProtected(boolean withInternal) {
+        String replace = withInternal ? "internal" : "private";
+        String prot = "2public";
+        int index = code.indexOf(prot);
+        while (index != -1) {
+            code.replace(index, index + 7, replace);
+            index = code.indexOf(prot);
+        }
+    }
+
     private void exitNonTranslatable(String message, ParserRuleContext ctx) {
         System.err.println("Error! Encountered non-translatable: " + message + " \""
                     + ctx.getParent().getText() + "\"");
