@@ -45,6 +45,8 @@ public class J2SwiftListener extends Java8BaseListener {
         modifierMap.put("strictfp", "error");
         modifierMap.put("transient", "error");
         modifierMap.put("volatile", "error");
+        modifierMap.put("synchronized", "error");
+        modifierMap.put("native", "error");
     }
 
     private StringBuilder code = new StringBuilder();
@@ -282,6 +284,12 @@ public class J2SwiftListener extends Java8BaseListener {
         else {
             code.append("var ");
         }
+        code.append('\0');   // mark start of unannType
+    }
+
+    @Override
+    public void enterVariableDeclaratorList(VariableDeclaratorListContext ctx) {
+        code.delete(code.lastIndexOf("\0"), code.length()); // remove unannType
     }
 
     @Override
@@ -294,7 +302,25 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
-        code.append(ctx.Identifier());
+        if (ctx.dims() != null) {
+            exitNonTranslatable("C-style array declaration", ctx);
+        }
+
+        if (ctx.getParent() instanceof FormalParameterContext) {
+            int index = code.lastIndexOf("!!");
+            String paramType = code.substring(index+2);
+            code.delete(index, code.length());
+            code.append(ctx.Identifier()).append(": ").append(paramType);
+        }
+        else if (ctx.getParent() instanceof LastFormalParameterContext) {
+            int index = code.lastIndexOf("!!");
+            String paramType = code.substring(index+2);
+            code.delete(index, code.length());
+            code.append(ctx.Identifier()).append(": ").append(paramType).append("...");
+        }
+        else {
+            code.append(ctx.Identifier());
+        }
     }
 
     @Override
@@ -343,6 +369,158 @@ public class J2SwiftListener extends Java8BaseListener {
       for (int i = 0; i < numDims; i++) {
         code.append(']');
       }
+    }
+
+    @Override
+    public void enterMethodDeclaration(MethodDeclarationContext ctx) {
+        code.append('\n');
+    }
+
+    @Override
+    public void enterMethodModifier(MethodModifierContext ctx) {
+        if (ctx.annotation() != null) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("error")) {
+            exitNonTranslatable("method modifier '"+ctx.getText()+"'", ctx);
+        }
+        code.append(text).append(' ');
+    }
+
+    public void enterMethodHeader(MethodHeaderContext ctx) {
+        code.append("??");  // start of possible type parameters
+    }
+
+    @Override
+    public void exitMethodHeader(MethodHeaderContext ctx) {
+        int resultEnd = code.lastIndexOf("\0");
+        int resultStart = code.lastIndexOf("\0", resultEnd-1);
+        if (resultEnd-resultStart == 1) {
+            // no return value
+            code.append(' ');
+            return;
+        }
+        String result = code.substring(resultStart+1, resultEnd);
+        code.delete(resultStart, resultEnd+1);
+        code.append(" -> ").append(result).append(' ');
+    }
+
+    @Override
+    public void enterResult(ResultContext ctx) {
+        code.append("??");   // end of possible type parameters
+        code.append('\0');  // mark the beginning of the unannType
+    }
+
+    @Override
+    public void exitResult(ResultContext ctx) {
+        code.append('\0');  // mark the end of the unannType
+    }
+
+    @Override
+    public void enterMethodDeclarator(MethodDeclaratorContext ctx) {
+        if (ctx.dims() != null) {
+            exitNonTranslatable("C-style array declaration", ctx);
+        }
+
+        code.append("func ").append(ctx.Identifier());
+        int typeParamsEnd = code.lastIndexOf("??");
+        int typeParamsStart = code.lastIndexOf("??", typeParamsEnd-2);
+        String typeParams = code.substring(typeParamsStart+2, typeParamsEnd);
+        code.delete(typeParamsStart, typeParamsEnd+2);
+        code.append(typeParams).append('(');
+    }
+
+    @Override
+    public void exitMethodDeclarator(MethodDeclaratorContext ctx) {
+        code.append(')');
+    }
+
+    @Override
+    public void enterFormalParameter(FormalParameterContext ctx) {
+        if (ctx.variableModifier() != null) {
+            boolean isConstant = false;
+            for (VariableModifierContext varMod : ctx.variableModifier()) {
+                if (varMod.getText().equals("final")) {
+                    isConstant = true;
+                    break;
+                }
+            }
+            if (!isConstant) {
+                code.append("var ");
+            }
+        }
+
+        if (ctx.getParent() instanceof FormalParametersContext) {
+            if (((FormalParametersContext) ctx.getParent()).formalParameter().get(0) != ctx) {
+                code.append("_ ");
+            }
+        }
+
+        code.append("!!");  // to mark the start of the unannType
+    }
+
+    @Override
+    public void exitFormalParameter(FormalParameterContext ctx) {
+        if (ctx.getParent() instanceof FormalParametersContext) {
+            code.append(", ");
+        }
+    }
+
+    @Override
+    public void enterReceiverParameter(ReceiverParameterContext ctx) {
+        exitNonTranslatable("receiver parameter", ctx);
+    }
+
+    @Override
+    public void enterLastFormalParameter(LastFormalParameterContext ctx) {
+        if (ctx.formalParameter() != null) return;
+
+        if (ctx.variableModifier() != null) {
+            boolean isConstant = false;
+            for (VariableModifierContext varMod : ctx.variableModifier()) {
+                if (varMod.getText().equals("final")) {
+                    isConstant = true;
+                    break;
+                }
+            }
+            if (!isConstant) {
+                code.append("var ");
+            }
+        }
+
+        if (ctx.getParent() instanceof FormalParameterListContext) {
+            if (((FormalParameterListContext) ctx.getParent()).formalParameters() != null) {
+                code.append("_ ");
+            }
+        }
+
+        code.append("!!");  // to mark the start of the unannType
+    }
+
+    @Override
+    public void enterThrows_(Throws_Context ctx) {
+        code.append(" throws!!");
+    }
+
+    @Override
+    public void exitThrows_(Throws_Context ctx) {
+        code.delete(code.lastIndexOf("!!"), code.length());
+    }
+
+    @Override
+    public void enterMethodBody(MethodBodyContext ctx) {
+        if (ctx.block() == null) {
+            code.append(ctx.getText());
+        }
+    }
+
+    @Override
+    public void enterBlock(BlockContext ctx) {
+        code.append("{\n");
+    }
+
+    @Override
+    public void exitBlock(BlockContext ctx) {
+        code.append("}\n");
     }
 
     /**
