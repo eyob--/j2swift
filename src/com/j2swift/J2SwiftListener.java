@@ -297,4 +297,61 @@ public class J2SwiftListener extends Java8BaseListener {
         code.append(ctx.Identifier());
     }
 
+    @Override
+    public void enterUnannPrimitiveType(UnannPrimitiveTypeContext ctx) {
+      String text = typeMap.get(ctx.getText());
+      if (text == null) {
+        code.append(ctx.getText());
+      }
+      else {
+        code.append(text);
+      }
+    }
+
+    @Override
+    public void enterUnannTypeVariable(UnannTypeVariableContext ctx) {
+      String text = typeMap.get(ctx.Identifier());
+      if (text == null) {
+        code.append(ctx.Identifier());
+      }
+      else {
+        code.append(text);
+      }
+    }
+
+    @Override
+    public void enterUnannClassType_lf_unannClassOrInterfaceType(UnannClassType_lf_unannClassOrInterfaceTypeContext ctx) {
+      code.append('.').append(ctx.Identifier());
+    }
+
+    @Override
+    public void enterUnannClassType_lfno_unannClassOrInterfaceType(UnannClassType_lfno_unannClassOrInterfaceTypeContext ctx) {
+      code.append(ctx.Identifier());
+    }
+
+    @Override
+    public void enterUnannArrayType(UnannArrayTypeContext ctx) {
+      int numDims = numSquareBrackets(ctx.dims().getText());
+      for (int i = 0; i < numDims; i++) {
+        code.append('[');
+      }
+    }
+
+    @Override
+    public void exitUnannArrayType(UnannArrayTypeContext ctx) {
+      int numDims = numSquareBrackets(ctx.dims().getText());
+      for (int i = 0; i < numDims; i++) {
+        code.append(']');
+      }
+    }
+
+    /**
+     * Gets the number of left square brackets in a String
+     * @param s String to find square brackets in
+     * @return the number of left square brackets
+     */
+    public int numSquareBrackets(String s) {
+      return s.length() - s.replace("[", "").length();
+    }
+
 }
