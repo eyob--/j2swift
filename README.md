@@ -48,10 +48,20 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 ### Method Declaration
 * Method modifiers
 * Type parameters
-* Return values
+* Return value
 * Formal Parameters
 	* regular parameters
 	* constant parameters
 	* varargs
-* Throw declaration
+* Throws declaration
 * Method body (the braces or semicolon)
+
+### Constructor Declaration
+* Constructor modifiers
+* Type parameters
+* Formal Parameters
+	* regular parameters
+	* constant parameters
+	* varargs
+* Throws declaration
+* Constructor body (the braces)
