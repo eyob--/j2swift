@@ -43,6 +43,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 	* the "final" modifier will cause the variable to be declared with "let"
 * Variable declaration list
 	* without initialization of variables
+	* type declarations included (e.g. "var a: Int32")
 
 ### Method Declaration
 * Method modifiers
