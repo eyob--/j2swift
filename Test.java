@@ -7,6 +7,10 @@ public class Test extends A implements B, C, D {
 	public final String c;
 	protected short s;
 
+	public <T> A(int i, final char[][] c, double... d) {
+
+	}
+
 	public <T> double f(final T t) throws IOException {
 
 	}

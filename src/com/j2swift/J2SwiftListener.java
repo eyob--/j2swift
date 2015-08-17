@@ -466,9 +466,12 @@ public class J2SwiftListener extends Java8BaseListener {
         }
 
         if (ctx.getParent() instanceof FormalParametersContext) {
-            if (((FormalParametersContext) ctx.getParent()).formalParameter().get(0) != ctx) {
+            if (((FormalParametersContext) ctx.getParent()).formalParameter().get(0) != ctx || !(ctx.getParent().getParent().getParent() instanceof MethodDeclaratorContext)) {
                 code.append("_ ");
             }
+        }
+        else if (!(ctx.getParent().getParent().getParent() instanceof MethodDeclaratorContext)) {
+            code.append("_ ");
         }
 
         code.append("!!");  // to mark the start of the unannType
@@ -504,7 +507,7 @@ public class J2SwiftListener extends Java8BaseListener {
         }
 
         if (ctx.getParent() instanceof FormalParameterListContext) {
-            if (((FormalParameterListContext) ctx.getParent()).formalParameters() != null) {
+            if (((FormalParameterListContext) ctx.getParent()).formalParameters() != null || !(ctx.getParent().getParent() instanceof MethodDeclaratorContext)) {
                 code.append("_ ");
             }
         }
@@ -536,6 +539,46 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitBlock(BlockContext ctx) {
+        code.append("}\n");
+    }
+
+    @Override
+    public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
+        code.append('\n');
+    }
+
+    @Override
+    public void enterConstructorModifier(ConstructorModifierContext ctx) {
+        if (ctx.annotation() != null) return;
+        String text = modifierMap.get(ctx.getText());
+        code.append(text).append(' ');
+    }
+
+    @Override
+    public void enterConstructorDeclarator(ConstructorDeclaratorContext ctx) {
+        code.append("??");  // start of possible type parameters
+    }
+
+    @Override
+    public void exitConstructorDeclarator(ConstructorDeclaratorContext ctx) {
+        code.append(')');
+    }
+
+    @Override
+    public void enterSimpleTypeName(SimpleTypeNameContext ctx) {
+        int index = code.lastIndexOf("??");
+        String typeParams = code.substring(index+2);
+        code.delete(index, code.length());
+        code.append("init").append(typeParams).append('(');
+    }
+
+    @Override
+    public void enterConstructorBody(ConstructorBodyContext ctx) {
+        code.append(" {\n");
+    }
+
+    @Override
+    public void exitConstructorBody(ConstructorBodyContext ctx) {
         code.append("}\n");
     }
 
