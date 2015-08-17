@@ -288,11 +288,6 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
-    public void enterVariableDeclaratorList(VariableDeclaratorListContext ctx) {
-        code.delete(code.lastIndexOf("\0"), code.length()); // remove unannType
-    }
-
-    @Override
     public void exitVariableDeclarator(VariableDeclaratorContext ctx) {
         List<VariableDeclaratorContext> list = ((VariableDeclaratorListContext) ctx.getParent()).variableDeclarator();
         if (list.get(list.size()-1) != ctx) {
@@ -317,6 +312,27 @@ public class J2SwiftListener extends Java8BaseListener {
             String paramType = code.substring(index+2);
             code.delete(index, code.length());
             code.append(ctx.Identifier()).append(": ").append(paramType).append("...");
+        }
+        else if (ctx.getParent() instanceof VariableDeclaratorContext) {
+            List<VariableDeclaratorContext> list = ((VariableDeclaratorListContext) ctx.getParent().getParent()).variableDeclarator();
+            int index = code.lastIndexOf("\0");
+            String type;
+
+            if (list.get(0) == ctx.getParent()) {
+                type = code.substring(index+1);
+                code.delete(index, code.length());
+            }
+            else {
+                type = code.substring(index+1, code.length()-2);
+                code.deleteCharAt(index);
+            }
+
+            if (list.get(list.size()-1) != ctx.getParent()) {
+                code.append(ctx.Identifier()).append(": \0").append(type);
+            }
+            else {
+                code.append(ctx.Identifier()).append(": ").append(type);
+            }
         }
         else {
             code.append(ctx.Identifier());
