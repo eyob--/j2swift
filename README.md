@@ -4,16 +4,29 @@ A Java to Swift syntax converter (still a work in progress).
 
 ## Why?
 
-When you're writing giant Android apps with loads of functionality, you really don't want to spend time going through the trouble of converting your non-Android-API code into swift line by laborious line. In this process, you not only waste enormous effort, you also waste an enormous amount of time that you could be using to add even more functionality to your app! Thus, a tool is desperately needed to make this process quicker and virtually painless so that you can go back to more important matters. j2swift hopes to accomplish this task through the use of the antlr4 parser generator (https://github.com/antlr/antlr4). Since semantics is matter that should be left mostly to the user, j2swift focuses mostly on syntax conversion.
+When you're writing giant Android apps with loads of functionality, you really don't want to spend time going through the trouble of converting your non-Android-API code into swift line by laborious line. In this process, you not only waste enormous effort, you also waste an enormous amount of time that you could be using to add even more functionality to your app! Thus, a tool is desperately needed to make this process quicker and virtually painless so that you can go back to more important matters. j2swift hopes to accomplish this task through the use of the [antlr4 parser generator](https://github.com/antlr/antlr4). Since semantics is matter that should be left mostly to the user, j2swift focuses mostly on syntax conversion.
 
 ## Versions
 
 For now, j2swift converts Java 8 syntax (https://github.com/antlr/grammars-v4/blob/master/java8/Java8.g4) to Swift 1.2 syntax.
 
+## Install
+
+First follow [these instructions on installing the antlr4 library](https://theantlrguy.atlassian.net/wiki/display/ANTLR4/Getting+Started+with+ANTLR+v4). Then, you can install and run the tool on the test file as follows:
+
+```sh
+$ git clone https://github.com/eyob--/j2swift.git
+$ cd j2swift/src/
+$ javac com/j2swift/*.java
+$ java com.j2swift.J2Swift ../Test.java
+```
+
 ## General Process
+
 The program accepts a single java file as the argument for the program and writes the converted program into a file with name "[original filename].swift"
 
 ## When it crashes
+
 If there is no Swift equivalent of a section of code, the program will tell the user so in stderr and exit with a status of 1. These are the list of things which will cause a crash:
 * Non-translatable modifiers
 	* abstract
@@ -28,10 +41,12 @@ If there is no Swift equivalent of a section of code, the program will tell the 
 * C-Style array declaration
 * Receiver parameter
 
-## What it covers
+## Covered Syntax
+
 For an actual example of what j2swift covers for now, check Test.java and Test.java.swift
 
 ### Class Declaration
+
 * Class modifiers
 	* protected	-> internal or private (user is asked)
 * Type Parameters
@@ -39,6 +54,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 * Class body (the braces)
 
 ### Field Declaration
+
 * Field modifiers
 	* the "final" modifier will cause the variable to be declared with "let"
 * Variable declaration list
@@ -46,6 +62,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 	* type declarations included (e.g. "var a: Int32")
 
 ### Method Declaration
+
 * Method modifiers
 * Type parameters
 * Return value
@@ -57,6 +74,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 * Method body (the braces or semicolon)
 
 ### Constructor Declaration
+
 * Constructor modifiers
 * Type parameters
 * Formal Parameters
