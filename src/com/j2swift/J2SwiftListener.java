@@ -582,6 +582,16 @@ public class J2SwiftListener extends Java8BaseListener {
         code.append("}\n");
     }
 
+    @Override
+    public void enterStaticInitializer(StaticInitializerContext ctx) {
+        exitNonTranslatable("static initializer block", ctx);
+    }
+
+    @Override
+    public void enterInstanceInitializer(InstanceInitializerContext ctx) {
+        exitNonTranslatable("instance initializer block", ctx);
+    }
+
     /**
      * Gets the number of left square brackets in a String
      * @param s String to find square brackets in
