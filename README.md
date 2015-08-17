@@ -20,9 +20,13 @@ If there is no Swift equivalent of a section of code, the program will tell the 
 	* strictfp
 	* transient
 	* volatile
+	* native
+	* synchronized
 * Type Parameter Quirks
 	* additional bound "&"
 	* wildcard "?"
+* C-Style array declaration
+* Receiver parameter
 
 ## What it covers
 For an actual example of what j2swift covers for now, check Test.java and Test.java.swift
@@ -39,3 +43,14 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 	* the "final" modifier will cause the variable to be declared with "let"
 * Variable declaration list
 	* without initialization of variables
+
+### Method Declaration
+* Method modifiers
+* Type parameters
+* Return values
+* Formal Parameters
+	* regular parameters
+	* constant parameters
+	* varargs
+* Throw declaration
+* Method body (the braces or semicolon)
