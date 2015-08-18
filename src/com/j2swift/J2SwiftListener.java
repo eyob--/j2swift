@@ -329,6 +329,22 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
+    public void enterUnannType(UnannTypeContext ctx) {
+        String text = typeMap.get(ctx.getText());
+        if (text != null) {
+            code.append(text);
+            code.append('#');
+        }
+    }
+
+    @Override
+    public void exitUnannType(UnannTypeContext ctx) {
+        if (code.lastIndexOf("#") != -1) {
+            code.delete(code.lastIndexOf("#"), code.length());
+        }
+    }
+
+    @Override
     public void enterUnannPrimitiveType(UnannPrimitiveTypeContext ctx) {
       String text = typeMap.get(ctx.getText());
       if (text == null) {

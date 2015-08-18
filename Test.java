@@ -3,7 +3,7 @@ import java.util.List;
 
 public class Test extends A implements B, C, D {
 
-	private int a, b;
+	private Integer a, b;
 	public final String c;
 	protected short s;
 
