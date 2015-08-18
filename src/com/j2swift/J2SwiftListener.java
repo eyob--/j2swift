@@ -1,7 +1,6 @@
 package com.j2swift;
 
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,12 +83,6 @@ public class J2SwiftListener extends Java8BaseListener {
         }
     }
 
-    private void exitNonTranslatable(String message, ParserRuleContext ctx) {
-        System.err.println("Error! Encountered non-translatable: " + message + " \""
-                    + ctx.getParent().getText() + "\"");
-        System.exit(1);
-    }
-
     @Override
     public void enterNormalClassDeclaration(NormalClassDeclarationContext ctx) {
         code.append("\n");
@@ -102,7 +95,7 @@ public class J2SwiftListener extends Java8BaseListener {
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
-            exitNonTranslatable("class modifier '"+ctx.getText()+"'", ctx);
+            Util.exitNonTranslatable("class modifier '"+ctx.getText()+"'", ctx);
         }
         code.append(text).append(' ');
     }
@@ -230,7 +223,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterAdditionalBound(AdditionalBoundContext ctx) {
-        exitNonTranslatable("additional type bound", ctx);
+        Util.exitNonTranslatable("additional type bound", ctx);
     }
 
     @Override
@@ -245,7 +238,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterWildcard(WildcardContext ctx) {
-        exitNonTranslatable("wildcard", ctx);
+        Util.exitNonTranslatable("wildcard", ctx);
     }
 
     @Override
@@ -265,7 +258,7 @@ public class J2SwiftListener extends Java8BaseListener {
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
-            exitNonTranslatable("field modifier '"+ctx.getText()+"'", ctx);
+            Util.exitNonTranslatable("field modifier '"+ctx.getText()+"'", ctx);
         }
         if (text.equals("final")) {
             return;
@@ -298,7 +291,7 @@ public class J2SwiftListener extends Java8BaseListener {
     @Override
     public void enterVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
         if (ctx.dims() != null) {
-            exitNonTranslatable("C-style array declaration", ctx);
+            Util.exitNonTranslatable("C-style array declaration", ctx);
         }
 
         if (ctx.getParent() instanceof FormalParameterContext) {
@@ -373,7 +366,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterUnannArrayType(UnannArrayTypeContext ctx) {
-      int numDims = numSquareBrackets(ctx.dims().getText());
+      int numDims = Util.numSquareBrackets(ctx.dims().getText());
       for (int i = 0; i < numDims; i++) {
         code.append('[');
       }
@@ -381,7 +374,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitUnannArrayType(UnannArrayTypeContext ctx) {
-      int numDims = numSquareBrackets(ctx.dims().getText());
+      int numDims = Util.numSquareBrackets(ctx.dims().getText());
       for (int i = 0; i < numDims; i++) {
         code.append(']');
       }
@@ -397,7 +390,7 @@ public class J2SwiftListener extends Java8BaseListener {
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
-            exitNonTranslatable("method modifier '"+ctx.getText()+"'", ctx);
+            Util.exitNonTranslatable("method modifier '"+ctx.getText()+"'", ctx);
         }
         code.append(text).append(' ');
     }
@@ -434,7 +427,7 @@ public class J2SwiftListener extends Java8BaseListener {
     @Override
     public void enterMethodDeclarator(MethodDeclaratorContext ctx) {
         if (ctx.dims() != null) {
-            exitNonTranslatable("C-style array declaration", ctx);
+            Util.exitNonTranslatable("C-style array declaration", ctx);
         }
 
         code.append("func ").append(ctx.Identifier());
@@ -486,7 +479,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterReceiverParameter(ReceiverParameterContext ctx) {
-        exitNonTranslatable("receiver parameter", ctx);
+        Util.exitNonTranslatable("receiver parameter", ctx);
     }
 
     @Override
@@ -584,21 +577,12 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterStaticInitializer(StaticInitializerContext ctx) {
-        exitNonTranslatable("static initializer block", ctx);
+        Util.exitNonTranslatable("static initializer block", ctx);
     }
 
     @Override
     public void enterInstanceInitializer(InstanceInitializerContext ctx) {
-        exitNonTranslatable("instance initializer block", ctx);
-    }
-
-    /**
-     * Gets the number of left square brackets in a String
-     * @param s String to find square brackets in
-     * @return the number of left square brackets
-     */
-    public int numSquareBrackets(String s) {
-      return s.length() - s.replace("[", "").length();
+        Util.exitNonTranslatable("instance initializer block", ctx);
     }
 
 }
