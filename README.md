@@ -9,6 +9,7 @@ A Java to Swift syntax converter (still a work in progress).
 * [When It Crashes](#when-it-crashes)
 * [Covered Syntax](#covered-syntax)
 	* [Class Declaration](#class-declaration)
+	* [Interface Declaration](#interface-declaration)
 	* [Field Declaration](#field-declaration)
 	* [Method Declaration](#method-declaration)
 	* [Constructor Declaration](#constructor-declaration)
@@ -60,9 +61,15 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 
 * Class modifiers
 	* protected	-> internal or private (user is asked)
-* Type Parameters
+* Type parameters
 * Superclass and Superinterfaces
-* Class body (the braces)
+* Class body (braces)
+
+### Interface Declaration
+* Interface modifiers
+* Type parameters
+* Parent interfaces
+* Interface body (braces)
 
 ### Field Declaration
 
@@ -82,7 +89,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 	* constant parameters
 	* varargs
 * Throws declaration
-* Method body (the braces or semicolon)
+* Method body (braces or semicolon)
 
 ### Constructor Declaration
 
@@ -93,4 +100,4 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 	* constant parameters
 	* varargs
 * Throws declaration
-* Constructor body (the braces)
+* Constructor body (braces)
