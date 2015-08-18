@@ -47,6 +47,7 @@ If there is no Swift equivalent of a section of code, the program will tell the 
 	* volatile
 	* native
 	* synchronized
+	* default
 * Type Parameter Quirks
 	* additional bound "&"
 	* wildcard "?"
@@ -73,7 +74,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 
 ### Field Declaration
 
-* Field modifiers
+* Field modifiers (class and interface)
 	* the "final" modifier will cause the variable to be declared with "let"
 * Variable declaration list
 	* without initialization of variables
@@ -81,7 +82,7 @@ For an actual example of what j2swift covers for now, check Test.java and Test.j
 
 ### Method Declaration
 
-* Method modifiers
+* Method modifiers (class and interface)
 * Type parameters
 * Return value
 * Formal Parameters
