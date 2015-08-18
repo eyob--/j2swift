@@ -5,6 +5,7 @@ A Java to Swift syntax converter (still a work in progress).
 ## Table of Contents
 * [Why?](#why)
 * [Versions](#versions)
+* [Install](#install)
 * [General Process](#general-process)
 * [When It Crashes](#when-it-crashes)
 * [Covered Syntax](#covered-syntax)
