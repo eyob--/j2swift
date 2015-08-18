@@ -247,7 +247,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitFieldDeclaration(FieldDeclarationContext ctx) {
-        code.append(";\n");
+        code.append('\n');
     }
 
     @Override
@@ -533,7 +533,7 @@ public class J2SwiftListener extends Java8BaseListener {
     @Override
     public void enterMethodBody(MethodBodyContext ctx) {
         if (ctx.block() == null) {
-            code.append(ctx.getText()).append('\n');
+            code.append('\n');
         }
         else {
             code.append(' ');
@@ -648,7 +648,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitConstantDeclaration(ConstantDeclarationContext ctx) {
-        code.append(";\n");
+        code.append('\n');
     }
 
     @Override
