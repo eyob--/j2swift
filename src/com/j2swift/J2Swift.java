@@ -23,6 +23,7 @@ public class J2Swift {
 		if (inputFile != null)
 			is = new FileInputStream(inputFile);
 		ANTLRInputStream input = new ANTLRInputStream(is);
+
 		Java8Lexer lexer = new Java8Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		Java8Parser parser = new Java8Parser(tokens);
@@ -30,9 +31,11 @@ public class J2Swift {
 		ParseTreeWalker walker = new ParseTreeWalker();
 		J2SwiftListener listener = new J2SwiftListener();
 		walker.walk(listener, tree);
-		if (listener.protectedEncountered()) {
-			System.out.println("A protected has been encountered");
-			System.out.print("Do you want to replace it with the internal keyword (no for private)? [Y/n] ");
+
+		int numProtected = listener.numProtected();
+		if (numProtected != 0) {
+			System.out.println("Encountered " + numProtected + " \"protected(s)\"");
+			System.out.print("Replace with the \"internal\" keyword (no for \"private\")? [Y/n] ");
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			int response = br.read();
 			if (response == 'n') {
@@ -42,6 +45,7 @@ public class J2Swift {
 				listener.replaceProtected(true);
 			}
 		}
+
 		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(inputFile+".swift")));
 		pw.println(listener.swiftCode());
 		pw.close();

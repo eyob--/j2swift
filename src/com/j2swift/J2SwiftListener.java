@@ -59,12 +59,8 @@ public class J2SwiftListener extends Java8BaseListener {
         return code.length() == 0 ? code.toString() :  code.insert(0, "import Foundation\n\n").toString();
     }
 
-    /**
-     * Returns whether a "protected" has been encountered in the parsed Java code
-     * @return whether the "protected" keyword has been encountered in the code
-     */
-    public boolean protectedEncountered() {
-        return code.indexOf("2public") != -1;
+    public int numProtected() {
+        return code.toString().split("2public", -1).length - 1;
     }
 
     /**
