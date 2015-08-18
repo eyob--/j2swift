@@ -274,7 +274,7 @@ public class J2SwiftListener extends Java8BaseListener {
         else {
             code.append("var ");
         }
-        code.append('\0');   // mark start of unannType
+        code.append("@@");   // mark start of unannType
     }
 
     @Override
@@ -305,20 +305,20 @@ public class J2SwiftListener extends Java8BaseListener {
         }
         else if (ctx.getParent() instanceof VariableDeclaratorContext) {
             List<VariableDeclaratorContext> list = ((VariableDeclaratorListContext) ctx.getParent().getParent()).variableDeclarator();
-            int index = code.lastIndexOf("\0");
+            int index = code.lastIndexOf("@@");
             String type;
 
             if (list.get(0) == ctx.getParent()) {
-                type = code.substring(index+1);
+                type = code.substring(index+2);
                 code.delete(index, code.length());
             }
             else {
-                type = code.substring(index+1, code.length()-2);
-                code.deleteCharAt(index);
+                type = code.substring(index+2, code.length()-2);
+                code.delete(index, index+2);
             }
 
             if (list.get(list.size()-1) != ctx.getParent()) {
-                code.append(ctx.Identifier()).append(": \0").append(type);
+                code.append(ctx.Identifier()).append(": @@").append(type);
             }
             else {
                 code.append(ctx.Identifier()).append(": ").append(type);
@@ -414,26 +414,27 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitMethodHeader(MethodHeaderContext ctx) {
-        int resultEnd = code.lastIndexOf("\0");
-        int resultStart = code.lastIndexOf("\0", resultEnd-1);
-        if (resultEnd-resultStart == 1) {
+        int resultEnd = code.lastIndexOf("@@");
+        int resultStart = code.lastIndexOf("@@", resultEnd-2);
+        if (resultEnd-resultStart == 2) {
             // no return value
+            code.delete(resultStart, resultEnd+2);
             return;
         }
-        String result = code.substring(resultStart+1, resultEnd);
-        code.delete(resultStart, resultEnd+1);
+        String result = code.substring(resultStart+2, resultEnd);
+        code.delete(resultStart, resultEnd+2);
         code.append(" -> ").append(result);
     }
 
     @Override
     public void enterResult(ResultContext ctx) {
         code.append("??");   // end of possible type parameters
-        code.append('\0');  // mark the beginning of the unannType
+        code.append("@@");  // mark the beginning of the unannType
     }
 
     @Override
     public void exitResult(ResultContext ctx) {
-        code.append('\0');  // mark the end of the unannType
+        code.append("@@");  // mark the end of the unannType
     }
 
     @Override
@@ -672,7 +673,7 @@ public class J2SwiftListener extends Java8BaseListener {
         else {
             code.append("var ");
         }
-        code.append('\0');   // mark start of unannType
+        code.append("@@");   // mark start of unannType
     }
 
     @Override
