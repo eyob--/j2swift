@@ -46,6 +46,7 @@ public class J2SwiftListener extends Java8BaseListener {
         modifierMap.put("volatile", "error");
         modifierMap.put("synchronized", "error");
         modifierMap.put("native", "error");
+        modifierMap.put("default", "error");
     }
 
     private StringBuilder code = new StringBuilder();
@@ -402,7 +403,7 @@ public class J2SwiftListener extends Java8BaseListener {
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
-            Util.exitNonTranslatable("method modifier '"+ctx.getText()+"'", ctx);
+            Util.exitNonTranslatable("class method modifier '"+ctx.getText()+"'", ctx);
         }
         code.append(text).append(' ');
     }
@@ -417,12 +418,11 @@ public class J2SwiftListener extends Java8BaseListener {
         int resultStart = code.lastIndexOf("\0", resultEnd-1);
         if (resultEnd-resultStart == 1) {
             // no return value
-            code.append(' ');
             return;
         }
         String result = code.substring(resultStart+1, resultEnd);
         code.delete(resultStart, resultEnd+1);
-        code.append(" -> ").append(result).append(' ');
+        code.append(" -> ").append(result);
     }
 
     @Override
@@ -533,7 +533,10 @@ public class J2SwiftListener extends Java8BaseListener {
     @Override
     public void enterMethodBody(MethodBodyContext ctx) {
         if (ctx.block() == null) {
-            code.append(ctx.getText());
+            code.append(ctx.getText()).append('\n');
+        }
+        else {
+            code.append(' ');
         }
     }
 
@@ -573,8 +576,8 @@ public class J2SwiftListener extends Java8BaseListener {
     public void enterSimpleTypeName(SimpleTypeNameContext ctx) {
         int index = code.lastIndexOf("??");
         String typeParams = code.substring(index+2);
-        code.delete(index, code.length());
         code.append("init").append(typeParams).append('(');
+        code.delete(index, code.length());
     }
 
     @Override
@@ -633,7 +636,58 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitInterfaceBody(InterfaceBodyContext ctx) {
-        code.append("}\n");
+        code.append("\n}\n");
+    }
+
+    @Override
+    public void enterConstantDeclaration(ConstantDeclarationContext ctx) {
+        if (code.charAt(code.length()-2) == '{') {
+            code.append("\n");
+        }
+    }
+
+    @Override
+    public void exitConstantDeclaration(ConstantDeclarationContext ctx) {
+        code.append(";\n");
+    }
+
+    @Override
+    public void enterConstantModifier(ConstantModifierContext ctx) {
+        if (ctx.annotation() != null) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("final")) {
+            return;
+        }
+        code.append(text).append(' ');
+    }
+
+    @Override
+    public void exitConstantModifier(ConstantModifierContext ctx) {
+        List<ConstantModifierContext> list = ((ConstantDeclarationContext) ctx.getParent()).constantModifier();
+        if (list.get(list.size()-1) != ctx) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("final")) {
+            code.append("let ");
+        }
+        else {
+            code.append("var ");
+        }
+        code.append('\0');   // mark start of unannType
+    }
+
+    @Override
+    public void enterInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
+        code.append('\n');
+    }
+
+    @Override
+    public void enterInterfaceMethodModifier(InterfaceMethodModifierContext ctx) {
+        if (ctx.annotation() != null) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("error")) {
+            Util.exitNonTranslatable("interface method modifier '"+ctx.getText()+"'", ctx);
+        }
+        code.append(text).append(' ');
     }
 
 }
