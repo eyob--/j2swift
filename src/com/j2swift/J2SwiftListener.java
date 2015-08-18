@@ -155,7 +155,7 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitClassBody(ClassBodyContext ctx) {
-        code.append("\n}");
+        code.append("\n}\n");
     }
 
     @Override
@@ -583,6 +583,45 @@ public class J2SwiftListener extends Java8BaseListener {
     @Override
     public void enterInstanceInitializer(InstanceInitializerContext ctx) {
         Util.exitNonTranslatable("instance initializer block", ctx);
+    }
+
+    @Override
+    public void enterNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
+        code.append('\n');
+    }
+
+    @Override
+    public void enterInterfaceModifier(InterfaceModifierContext ctx) {
+        if (ctx.annotation() != null) return;
+        String text = modifierMap.get(ctx.getText());
+        if (text.equals("error")) {
+            Util.exitNonTranslatable("interface modifier '"+ctx.getText()+"'", ctx);
+        }
+        code.append(text).append(' ');
+    }
+
+    @Override
+    public void exitInterfaceModifier(InterfaceModifierContext ctx) {
+        NormalInterfaceDeclarationContext parent = (NormalInterfaceDeclarationContext) ctx.getParent();
+        List<InterfaceModifierContext> list = parent.interfaceModifier();
+        if (list.get(list.size()-1) == ctx) {
+            code.append("protocol ").append(parent.Identifier());
+        }
+    }
+
+    @Override
+    public void enterExtendsInterfaces(ExtendsInterfacesContext ctx) {
+        code.append(": ");
+    }
+
+    @Override
+    public void enterInterfaceBody(InterfaceBodyContext ctx) {
+        code.append(" {\n");
+    }
+
+    @Override
+    public void exitInterfaceBody(InterfaceBodyContext ctx) {
+        code.append("}\n");
     }
 
 }

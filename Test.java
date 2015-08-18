@@ -24,3 +24,7 @@ public class Test extends A implements B, C, D {
 	}
 
 }
+
+protected interface OtherI<T> extends Some1I, Some2I, Some3I {
+
+}
