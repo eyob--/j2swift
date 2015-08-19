@@ -106,6 +106,13 @@ public class J2SwiftListener extends Java8BaseListener {
                 code.append("class ").append(parent.Identifier());
             }
         }
+        else {
+            EnumDeclarationContext parent = (EnumDeclarationContext) ctx.getParent();
+            List<ClassModifierContext> modifierList = parent.classModifier();
+            if (modifierList.get(modifierList.size()-1) == ctx) {
+                code.append("enum ").append(parent.Identifier());
+            }
+        }
     }
 
     @Override
@@ -147,6 +154,9 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterClassBody(ClassBodyContext ctx) {
+        if (ctx.getParent() instanceof EnumConstantContext) {
+            Util.exitNonTranslatable("enum constant class body", ctx);
+        }
         code.append(" {\n");
     }
 
@@ -689,6 +699,54 @@ public class J2SwiftListener extends Java8BaseListener {
             Util.exitNonTranslatable("interface method modifier '"+ctx.getText()+"'", ctx);
         }
         code.append(text).append(' ');
+    }
+
+    public void enterEnumDeclaration(EnumDeclarationContext ctx) {
+        code.append("\n");
+        if (ctx.classModifier() == null)
+            code.append("enum ").append(ctx.Identifier());
+    }
+
+    @Override
+    public void enterEnumBody(EnumBodyContext ctx) {
+        code.append(" {\n");
+    }
+
+    @Override
+    public void exitEnumBody(EnumBodyContext ctx) {
+        code.append("\n}\n");
+    }
+
+    @Override
+    public void enterEnumConstantList(EnumConstantListContext ctx) {
+        code.append("case ");
+    }
+
+    @Override
+    public void enterEnumConstant(EnumConstantContext ctx) {
+        code.append(ctx.Identifier());
+    }
+
+    @Override
+    public void exitEnumConstant(EnumConstantContext ctx) {
+        List<EnumConstantContext> list = ((EnumConstantListContext) ctx.getParent()).enumConstant();
+        if (list.get(list.size()-1) != ctx) {
+            code.append(", ");
+        }
+    }
+
+    @Override
+    public void enterArgumentList(ArgumentListContext ctx) {
+        if (ctx.getParent() instanceof EnumConstantContext) {
+            Util.exitNonTranslatable("enum constant initializer", ctx);
+        }
+    }
+
+    @Override
+    public void enterEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
+        if (ctx.classBodyDeclaration().size() > 0) {
+            Util.exitNonTranslatable("enum body declaration", ctx);
+        }
     }
 
 }

@@ -32,3 +32,7 @@ protected interface OtherI<T> extends Some1I, Some2I, Some3I {
 	static byte[] someMethod(boolean b, T... params);
 
 }
+
+private enum SomethingE implements SomethingElseI {
+	A, B, C, D, E;
+}

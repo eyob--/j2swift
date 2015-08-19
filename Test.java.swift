@@ -30,3 +30,7 @@ static func someMethod(var b: Bool, var _ params: T...) -> [Int8]
 
 }
 
+private enum SomethingE: SomethingElseI {
+case A, B, C, D, E
+}
+
