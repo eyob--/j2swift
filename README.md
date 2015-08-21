@@ -8,6 +8,7 @@ A Java to Swift syntax converter (still a work in progress).
 * [Install](#install)
 * [General Process](#general-process)
 * [When It Crashes](#when-it-crashes)
+* [Ignored Code](#ignored-code)
 * [Covered Syntax](#covered-syntax)
 	* [Classes](#classes)
 	* [Interfaces](#interfaces)
@@ -41,7 +42,7 @@ The program accepts a single java file as the argument for the program and write
 
 ## When It Crashes
 
-If there is no Swift equivalent of an important section of code, the program will tell the user so in stderr and exit with a status of 1. These are the list of things which will cause a crash:
+If there is no Swift equivalent of an important section of code, the program will tell the user so in stderr and exit with a status of 1. This is the list of things which will cause a crash:
 * Non-translatable modifiers
 	* abstract
 	* strictfp
@@ -57,6 +58,13 @@ If there is no Swift equivalent of an important section of code, the program wil
 * Receiver parameter
 * Enum discrepancies
 	* Any body declaration other than the constant list
+
+## Ignored Code
+
+Sometimes, it may be more reasonable to simply skip a section of code instead of terminating the entire translation process so that the user can delete just those lines and feed the program back into the translator. This is the list of things which will be ignored and skipped by the translator:
+* Annotations
+	* declarations
+	* regular usage
 
 ## Covered Syntax
 
