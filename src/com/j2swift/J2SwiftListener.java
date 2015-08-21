@@ -853,8 +853,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
         int index = code.lastIndexOf("??");
         String typeParams = code.substring(index+2);
-        code.append("init").append(typeParams).append('(');
         code.delete(index, code.length());
+        code.append("init").append(typeParams).append('(');
     }
 
     @Override
