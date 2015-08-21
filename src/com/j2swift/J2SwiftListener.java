@@ -51,6 +51,10 @@ public class J2SwiftListener extends Java8BaseListener {
 
     private StringBuilder code = new StringBuilder();
 
+    private int depth = 0;
+    private boolean skipping = false;
+    private int skipDepth;
+
     /**
      * Returns the swift code to be outputted to a file, or the empty string if
      * the tree hasn't been walked with this listener.
@@ -80,15 +84,46 @@ public class J2SwiftListener extends Java8BaseListener {
         }
     }
 
+    private boolean shouldSkipExit() {
+        if (skipping) {
+            if (skipDepth == depth) {
+                skipping = false;
+            }
+            depth--;
+            return true;
+        }
+        depth--;
+        return false;
+    }
+
+    private boolean shouldSkipEnter() {
+        depth++;
+        return skipping;
+    }
+
+    private void skipSubtree() {
+        skipping = true;
+        skipDepth = depth;
+    }
+
     @Override
     public void enterNormalClassDeclaration(NormalClassDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("\n");
         if (ctx.classModifier() == null)
             code.append("class ").append(ctx.Identifier());
     }
 
     @Override
+    public void exitNormalClassDeclaration(NormalClassDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterClassModifier(ClassModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
@@ -99,6 +134,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitClassModifier(ClassModifierContext ctx) {
+        if (shouldSkipExit()) return;
+
         if (ctx.getParent() instanceof NormalClassDeclarationContext) {
             NormalClassDeclarationContext parent = (NormalClassDeclarationContext) ctx.getParent();
             List<ClassModifierContext> modifierList = parent.classModifier();
@@ -117,11 +154,20 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterSuperclass(SuperclassContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(": ");
     }
 
     @Override
+    public void exitSuperclass(SuperclassContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterSuperinterfaces(SuperinterfacesContext ctx) {
+        if (shouldSkipEnter()) return;
+
         boolean superClassExists = ctx.getParent() instanceof NormalClassDeclarationContext
                     && ((NormalClassDeclarationContext) ctx.getParent()).superclass() != null;
         if (superClassExists) {
@@ -133,7 +179,19 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
+    public void exitSuperinterfaces(SuperinterfacesContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
+    public void enterInterfaceType(InterfaceTypeContext ctx) {
+        if (shouldSkipEnter()) return;
+    }
+
+    @Override
     public void exitInterfaceType(InterfaceTypeContext ctx) {
+        if (shouldSkipExit()) return;
+
         ParserRuleContext parent = ctx.getParent();
         if (parent instanceof InterfaceTypeListContext) {
             List<InterfaceTypeContext> interfaceList =
@@ -146,7 +204,14 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
+    public void enterClassType(ClassTypeContext ctx) {
+        if (shouldSkipEnter()) return;
+    }
+
+    @Override
     public void exitClassType(ClassTypeContext ctx) {
+        if (shouldSkipExit()) return;
+
         // the identifier is usually printed in enterTypeArguments()
         if (ctx.typeArguments() == null)
             code.append(ctx.Identifier());
@@ -154,6 +219,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterClassBody(ClassBodyContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.getParent() instanceof EnumConstantContext) {
             Util.exitNonTranslatable("enum constant class body", ctx);
         }
@@ -162,26 +229,36 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitClassBody(ClassBodyContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append("\n}\n");
     }
 
     @Override
     public void enterTypeParameters(TypeParametersContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("<");
     }
 
     @Override
     public void exitTypeParameters(TypeParametersContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append(">");
     }
 
     @Override
     public void enterTypeParameter(TypeParameterContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(ctx.Identifier());
     }
 
     @Override
     public void exitTypeParameter(TypeParameterContext ctx) {
+        if (shouldSkipExit()) return;
+
         List<TypeParameterContext> typeParameterList =
                     ((TypeParameterListContext) ctx.getParent()).typeParameter();
         if (typeParameterList.get(typeParameterList.size()-1) != ctx) {
@@ -191,6 +268,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterTypeArguments(TypeArgumentsContext ctx) {
+        if (shouldSkipEnter()) return;
+
         // print out class identifier if these are the type arguments for a class
         if (ctx.getParent() instanceof ClassTypeContext) {
             ClassTypeContext parent = (ClassTypeContext) ctx.getParent();
@@ -205,11 +284,20 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitTypeArguments(TypeArgumentsContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append(">");
     }
 
     @Override
+    public void enterTypeArgument(TypeArgumentContext ctx) {
+        if (shouldSkipEnter()) return;
+    }
+
+    @Override
     public void exitTypeArgument(TypeArgumentContext ctx) {
+        if (shouldSkipExit()) return;
+
         List<TypeArgumentContext> typeArgumentList =
                     ((TypeArgumentListContext) ctx.getParent()).typeArgument();
 
@@ -220,36 +308,80 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterTypeBound(TypeBoundContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(": ");
     }
 
     @Override
+    public void exitTypeBound(TypeBoundContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterTypeVariable(TypeVariableContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(ctx.Identifier());
+    }
+
+    @Override
+    public void exitTypeVariable(TypeVariableContext ctx) {
+        if (shouldSkipExit()) return;
     }
 
     @Override
     public void enterAdditionalBound(AdditionalBoundContext ctx) {
+        if (shouldSkipEnter()) return;
+
         Util.exitNonTranslatable("additional type bound", ctx);
     }
 
     @Override
+    public void exitAdditionalBound(AdditionalBoundContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterClassType_lfno_classOrInterfaceType(ClassType_lfno_classOrInterfaceTypeContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(ctx.Identifier());
     }
 
     @Override
+    public void exitClassType_lfno_classOrInterfaceType(ClassType_lfno_classOrInterfaceTypeContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterClassType_lf_classOrInterfaceType(ClassType_lf_classOrInterfaceTypeContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append('.').append(ctx.Identifier());
     }
 
     @Override
+    public void exitClassType_lf_classOrInterfaceType(ClassType_lf_classOrInterfaceTypeContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterWildcard(WildcardContext ctx) {
+        if (shouldSkipEnter()) return;
+
         Util.exitNonTranslatable("wildcard", ctx);
     }
 
     @Override
+    public void exitWildcard(WildcardContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterFieldDeclaration(FieldDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (code.charAt(code.length()-2) == '{') {
             code.append("\n");
         }
@@ -257,11 +389,15 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitFieldDeclaration(FieldDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append('\n');
     }
 
     @Override
     public void enterFieldModifier(FieldModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
@@ -275,6 +411,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitFieldModifier(FieldModifierContext ctx) {
+        if (shouldSkipExit()) return;
+
         List<FieldModifierContext> list = ((FieldDeclarationContext) ctx.getParent()).fieldModifier();
         if (list.get(list.size()-1) != ctx) return;
         String text = modifierMap.get(ctx.getText());
@@ -288,7 +426,14 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
+    public void enterVariableDeclarator(VariableDeclaratorContext ctx) {
+        if (shouldSkipEnter()) return;
+    }
+
+    @Override
     public void exitVariableDeclarator(VariableDeclaratorContext ctx) {
+        if (shouldSkipExit()) return;
+
         List<VariableDeclaratorContext> list = ((VariableDeclaratorListContext) ctx.getParent()).variableDeclarator();
         if (list.get(list.size()-1) != ctx) {
             code.append(", ");
@@ -297,6 +442,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.dims() != null) {
             Util.exitNonTranslatable("C-style array declaration", ctx);
         }
@@ -339,8 +486,14 @@ public class J2SwiftListener extends Java8BaseListener {
         }
     }
 
+    public void exitVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
     @Override
     public void enterUnannType(UnannTypeContext ctx) {
+        if (shouldSkipEnter()) return;
+
         String text = typeMap.get(ctx.getText());
         if (text != null) {
             code.append(text);
@@ -350,6 +503,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitUnannType(UnannTypeContext ctx) {
+        if (shouldSkipExit()) return;
+
         if (code.lastIndexOf("#") != -1) {
             code.delete(code.lastIndexOf("#"), code.length());
         }
@@ -357,59 +512,100 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterUnannPrimitiveType(UnannPrimitiveTypeContext ctx) {
-      String text = typeMap.get(ctx.getText());
-      if (text == null) {
-        code.append(ctx.getText());
-      }
-      else {
-        code.append(text);
-      }
+        if (shouldSkipEnter()) return;
+
+        String text = typeMap.get(ctx.getText());
+        if (text == null) {
+            code.append(ctx.getText());
+        }
+        else {
+            code.append(text);
+        }
+    }
+
+    @Override
+    public void exitUnannPrimitiveType(UnannPrimitiveTypeContext ctx) {
+        if (shouldSkipExit()) return;
     }
 
     @Override
     public void enterUnannTypeVariable(UnannTypeVariableContext ctx) {
-      String text = typeMap.get(ctx.Identifier());
-      if (text == null) {
-        code.append(ctx.Identifier());
-      }
-      else {
-        code.append(text);
-      }
+        if (shouldSkipEnter()) return;
+
+        String text = typeMap.get(ctx.Identifier());
+        if (text == null) {
+            code.append(ctx.Identifier());
+        }
+        else {
+            code.append(text);
+        }
+    }
+
+    @Override
+    public void exitUnannTypeVariable(UnannTypeVariableContext ctx) {
+        if (shouldSkipExit()) return;
     }
 
     @Override
     public void enterUnannClassType_lf_unannClassOrInterfaceType(UnannClassType_lf_unannClassOrInterfaceTypeContext ctx) {
-      code.append('.').append(ctx.Identifier());
+        if (shouldSkipEnter()) return;
+
+        code.append('.').append(ctx.Identifier());
+    }
+
+    @Override
+    public void exitUnannClassType_lf_unannClassOrInterfaceType(UnannClassType_lf_unannClassOrInterfaceTypeContext ctx) {
+        if (shouldSkipExit()) return;
     }
 
     @Override
     public void enterUnannClassType_lfno_unannClassOrInterfaceType(UnannClassType_lfno_unannClassOrInterfaceTypeContext ctx) {
-      code.append(ctx.Identifier());
+        if (shouldSkipEnter()) return;
+
+        code.append(ctx.Identifier());
+    }
+
+    @Override
+    public void exitUnannClassType_lfno_unannClassOrInterfaceType(UnannClassType_lfno_unannClassOrInterfaceTypeContext ctx) {
+        if (shouldSkipExit()) return;
     }
 
     @Override
     public void enterUnannArrayType(UnannArrayTypeContext ctx) {
-      int numDims = Util.numSquareBrackets(ctx.dims().getText());
-      for (int i = 0; i < numDims; i++) {
-        code.append('[');
-      }
+        if (shouldSkipEnter()) return;
+
+        int numDims = Util.numSquareBrackets(ctx.dims().getText());
+        for (int i = 0; i < numDims; i++) {
+            code.append('[');
+        }
     }
 
     @Override
     public void exitUnannArrayType(UnannArrayTypeContext ctx) {
-      int numDims = Util.numSquareBrackets(ctx.dims().getText());
-      for (int i = 0; i < numDims; i++) {
-        code.append(']');
-      }
+        if (shouldSkipExit()) return;
+
+        int numDims = Util.numSquareBrackets(ctx.dims().getText());
+        for (int i = 0; i < numDims; i++) {
+            code.append(']');
+        }
     }
 
     @Override
     public void enterMethodDeclaration(MethodDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append('\n');
     }
 
     @Override
+    public void exitMethodDeclaration(MethodDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterMethodModifier(MethodModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
@@ -418,12 +614,21 @@ public class J2SwiftListener extends Java8BaseListener {
         code.append(text).append(' ');
     }
 
+    @Override
+    public void exitMethodModifier(MethodModifierContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
     public void enterMethodHeader(MethodHeaderContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("??");  // start of possible type parameters
     }
 
     @Override
     public void exitMethodHeader(MethodHeaderContext ctx) {
+        if (shouldSkipExit()) return;
+
         int resultEnd = code.lastIndexOf("@@");
         int resultStart = code.lastIndexOf("@@", resultEnd-2);
         if (resultEnd-resultStart == 2) {
@@ -438,17 +643,23 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterResult(ResultContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("??");   // end of possible type parameters
         code.append("@@");  // mark the beginning of the unannType
     }
 
     @Override
     public void exitResult(ResultContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append("@@");  // mark the end of the unannType
     }
 
     @Override
     public void enterMethodDeclarator(MethodDeclaratorContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.dims() != null) {
             Util.exitNonTranslatable("C-style array declaration", ctx);
         }
@@ -463,11 +674,15 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitMethodDeclarator(MethodDeclaratorContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append(')');
     }
 
     @Override
     public void enterFormalParameter(FormalParameterContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.variableModifier() != null) {
             boolean isConstant = false;
             for (VariableModifierContext varMod : ctx.variableModifier()) {
@@ -495,6 +710,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitFormalParameter(FormalParameterContext ctx) {
+        if (shouldSkipExit()) return;
+
         if (ctx.getParent() instanceof FormalParametersContext) {
             code.append(", ");
         }
@@ -502,11 +719,20 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterReceiverParameter(ReceiverParameterContext ctx) {
+        if (shouldSkipEnter()) return;
+
         Util.exitNonTranslatable("receiver parameter", ctx);
     }
 
     @Override
+    public void exitReceiverParameter(ReceiverParameterContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterLastFormalParameter(LastFormalParameterContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.formalParameter() != null) return;
 
         if (ctx.variableModifier() != null) {
@@ -532,17 +758,28 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
+    public void exitLastFormalParameter(LastFormalParameterContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterThrows_(Throws_Context ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(" throws!!");
     }
 
     @Override
     public void exitThrows_(Throws_Context ctx) {
+        if (shouldSkipExit()) return;
+
         code.delete(code.lastIndexOf("!!"), code.length());
     }
 
     @Override
     public void enterMethodBody(MethodBodyContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.block() == null) {
             code.append('\n');
         }
@@ -552,39 +789,68 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
+    public void exitMethodBody(MethodBodyContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterBlock(BlockContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("{\n");
     }
 
     @Override
     public void exitBlock(BlockContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append("}\n");
     }
 
     @Override
     public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append('\n');
     }
 
     @Override
+    public void exitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterConstructorModifier(ConstructorModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         code.append(text).append(' ');
     }
 
     @Override
+    public void exitConstructorModifier(ConstructorModifierContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterConstructorDeclarator(ConstructorDeclaratorContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("??");  // start of possible type parameters
     }
 
     @Override
     public void exitConstructorDeclarator(ConstructorDeclaratorContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append(')');
     }
 
     @Override
     public void enterSimpleTypeName(SimpleTypeNameContext ctx) {
+        if (shouldSkipEnter()) return;
+
         int index = code.lastIndexOf("??");
         String typeParams = code.substring(index+2);
         code.append("init").append(typeParams).append('(');
@@ -592,32 +858,64 @@ public class J2SwiftListener extends Java8BaseListener {
     }
 
     @Override
+    public void exitSimpleTypeName(SimpleTypeNameContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterConstructorBody(ConstructorBodyContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(" {\n");
     }
 
     @Override
     public void exitConstructorBody(ConstructorBodyContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append("}\n");
     }
 
     @Override
     public void enterStaticInitializer(StaticInitializerContext ctx) {
+        if (shouldSkipEnter()) return;
+
         Util.exitNonTranslatable("static initializer block", ctx);
     }
 
     @Override
+    public void exitStaticInitializer(StaticInitializerContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterInstanceInitializer(InstanceInitializerContext ctx) {
+        if (shouldSkipEnter()) return;
+
         Util.exitNonTranslatable("instance initializer block", ctx);
     }
 
     @Override
+    public void exitInstanceInitializer(InstanceInitializerContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append('\n');
     }
 
     @Override
+    public void exitNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterInterfaceModifier(InterfaceModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
@@ -628,6 +926,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitInterfaceModifier(InterfaceModifierContext ctx) {
+        if (shouldSkipExit()) return;
+
         NormalInterfaceDeclarationContext parent = (NormalInterfaceDeclarationContext) ctx.getParent();
         List<InterfaceModifierContext> list = parent.interfaceModifier();
         if (list.get(list.size()-1) == ctx) {
@@ -637,21 +937,34 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterExtendsInterfaces(ExtendsInterfacesContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(": ");
     }
 
     @Override
+    public void exitExtendsInterfaces(ExtendsInterfacesContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterInterfaceBody(InterfaceBodyContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(" {\n");
     }
 
     @Override
     public void exitInterfaceBody(InterfaceBodyContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append("\n}\n");
     }
 
     @Override
     public void enterConstantDeclaration(ConstantDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (code.charAt(code.length()-2) == '{') {
             code.append("\n");
         }
@@ -659,11 +972,15 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitConstantDeclaration(ConstantDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append('\n');
     }
 
     @Override
     public void enterConstantModifier(ConstantModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("final")) {
@@ -674,6 +991,8 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void exitConstantModifier(ConstantModifierContext ctx) {
+        if (shouldSkipExit()) return;
+
         List<ConstantModifierContext> list = ((ConstantDeclarationContext) ctx.getParent()).constantModifier();
         if (list.get(list.size()-1) != ctx) return;
         String text = modifierMap.get(ctx.getText());
@@ -688,11 +1007,20 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append('\n');
     }
 
     @Override
+    public void exitInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterInterfaceMethodModifier(InterfaceMethodModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.annotation() != null) return;
         String text = modifierMap.get(ctx.getText());
         if (text.equals("error")) {
@@ -701,34 +1029,62 @@ public class J2SwiftListener extends Java8BaseListener {
         code.append(text).append(' ');
     }
 
+    @Override
+    public void exitInterfaceMethodModifier(InterfaceMethodModifierContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterEnumDeclaration(EnumDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("\n");
         if (ctx.classModifier() == null)
             code.append("enum ").append(ctx.Identifier());
     }
 
     @Override
+    public void exitEnumDeclaration(EnumDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterEnumBody(EnumBodyContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(" {\n");
     }
 
     @Override
     public void exitEnumBody(EnumBodyContext ctx) {
+        if (shouldSkipExit()) return;
+
         code.append("\n}\n");
     }
 
     @Override
     public void enterEnumConstantList(EnumConstantListContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append("case ");
     }
 
     @Override
+    public void exitEnumConstantList(EnumConstantListContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterEnumConstant(EnumConstantContext ctx) {
+        if (shouldSkipEnter()) return;
+
         code.append(ctx.Identifier());
     }
 
     @Override
     public void exitEnumConstant(EnumConstantContext ctx) {
+        if (shouldSkipExit()) return;
+
         List<EnumConstantContext> list = ((EnumConstantListContext) ctx.getParent()).enumConstant();
         if (list.get(list.size()-1) != ctx) {
             code.append(", ");
@@ -737,16 +1093,30 @@ public class J2SwiftListener extends Java8BaseListener {
 
     @Override
     public void enterArgumentList(ArgumentListContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.getParent() instanceof EnumConstantContext) {
             Util.exitNonTranslatable("enum constant initializer", ctx);
         }
     }
 
     @Override
+    public void exitArgumentList(ArgumentListContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
     public void enterEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
+        if (shouldSkipEnter()) return;
+
         if (ctx.classBodyDeclaration().size() > 0) {
             Util.exitNonTranslatable("enum body declaration", ctx);
         }
+    }
+
+    @Override
+    public void exitEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
+        if (shouldSkipExit()) return;
     }
 
 }
