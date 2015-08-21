@@ -1119,4 +1119,28 @@ public class J2SwiftListener extends Java8BaseListener {
         if (shouldSkipExit()) return;
     }
 
+    @Override
+    public void enterAnnotation(AnnotationContext ctx) {
+        if (shouldSkipEnter()) return;
+
+        skipSubtree();
+    }
+
+    @Override
+    public void exitAnnotation(AnnotationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
+    @Override
+    public void enterAnnotationTypeDeclaration(AnnotationTypeDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
+        skipSubtree();
+    }
+
+    @Override
+    public void exitAnnotationTypeDeclaration(AnnotationTypeDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+    }
+
 }

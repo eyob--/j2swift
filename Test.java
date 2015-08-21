@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.util.List;
 
+@SomeAnnotation
 public class Test extends A implements B, C, D {
 
 	private Integer a, b;
@@ -23,6 +24,10 @@ public class Test extends A implements B, C, D {
 
 	}
 
+}
+
+@interface SomeAnnotation {
+	int someValue() default 0;
 }
 
 protected interface OtherI<T> extends Some1I, Some2I, Some3I {
