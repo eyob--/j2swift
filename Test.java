@@ -4,12 +4,13 @@ import java.util.List;
 @SomeAnnotation
 public class Test extends A implements B, C, D {
 
+	float d;
 	private Integer a, b;
 	public final String c;
 	protected short s;
 
 	public <T> A(int i, final char[][] c, double... d) {
-
+		int a, b;
 	}
 
 	public <T> double f(final T t) throws IOException {

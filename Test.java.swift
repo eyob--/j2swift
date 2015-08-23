@@ -3,11 +3,13 @@ import Foundation
 
 public class Test: A, B, C, D {
 
+var d: Float
 private var a: Int32, b: Int32
 public let c: String
 internal var s: Int16
 
 public init<T>(var _ i: Int32, _ c: [[Character]], var _ d: Double...) {
+var a: Int32, b: Int32
 }
 
 public func f<T>(t: T) throws -> Double {

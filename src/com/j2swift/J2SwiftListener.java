@@ -385,6 +385,9 @@ public class J2SwiftListener extends Java8BaseListener {
         if (code.charAt(code.length()-2) == '{') {
             code.append("\n");
         }
+        if (ctx.fieldModifier().size() == 0) {
+            code.append("var @@");
+        }
     }
 
     @Override
@@ -1141,6 +1144,57 @@ public class J2SwiftListener extends Java8BaseListener {
     @Override
     public void exitAnnotationTypeDeclaration(AnnotationTypeDeclarationContext ctx) {
         if (shouldSkipExit()) return;
+    }
+
+    @Override
+    public void enterLocalVariableDeclaration(LocalVariableDeclarationContext ctx) {
+        if (shouldSkipEnter()) return;
+
+        if (ctx.variableModifier().size() == 0) {
+            code.append("var @@");
+        }
+    }
+
+    @Override
+    public void exitLocalVariableDeclaration(LocalVariableDeclarationContext ctx) {
+        if (shouldSkipExit()) return;
+
+        code.append('\n');
+    }
+
+    @Override
+    public void enterVariableModifier(VariableModifierContext ctx) {
+        if (shouldSkipEnter()) return;
+
+        if (ctx.getParent() instanceof LocalVariableDeclarationContext) {
+            if (ctx.annotation() != null) return;
+            String text = modifierMap.get(ctx.getText());
+            if (text.equals("error")) {
+                Util.exitNonTranslatable("variable modifier '"+ctx.getText()+"'", ctx);
+            }
+            if (text.equals("final")) {
+                return;
+            }
+            code.append(text).append(' ');
+        }
+    }
+
+    @Override
+    public void exitVariableModifier(VariableModifierContext ctx) {
+        if (shouldSkipExit()) return;
+
+        if (ctx.getParent() instanceof LocalVariableDeclarationContext) {
+            List<VariableModifierContext> list = ((LocalVariableDeclarationContext) ctx.getParent()).variableModifier();
+            if (list.get(list.size()-1) != ctx) return;
+            String text = modifierMap.get(ctx.getText());
+            if (text.equals("final")) {
+                code.append("let ");
+            }
+            else {
+                code.append("var ");
+            }
+            code.append("@@");   // mark start of unannType
+        }
     }
 
 }
